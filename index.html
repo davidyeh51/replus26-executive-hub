@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RE+ 26 深度產業洞察暨進能服台灣落地戰略｜麥肯錫 10 分鐘簡報平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mckNavy: '#0B1F3A',
+            mckBlue: '#1D4ED8',
+            mckSlate: '#475569',
+            mckGold: '#D97706',
+            mckBg: '#F8FAFC'
+          },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Noto Sans TC', 'Inter', sans-serif; background-color: #F1F5F9; color: #0F172A; }
+    .slide-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px -10px rgba(11, 31, 58, 0.10);
+      overflow: hidden;
+    }
+    .mck-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #1D4ED8;
+    }
+    .mck-action-title {
+      font-size: 1.45rem;
+      line-height: 1.35;
+      font-weight: 800;
+      color: #0B1F3A;
+      border-left: 5px solid #D97706;
+      padding-left: 14px;
+    }
+    .startup-svg-card:hover rect:first-child {
+      stroke: #1D4ED8;
+      stroke-width: 2;
+      fill: #EFF6FF;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .slide-card { break-inside: avoid; box-shadow: none; margin-bottom: 24px; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Sticky Executive Header -->
+  <header class="no-print sticky top-0 z-40 bg-mckNavy text-white shadow-lg border-b border-slate-700">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center font-black text-mckNavy text-sm shadow">
+          6692
+        </div>
+        <div>
+          <div class="text-[11px] text-amber-300 font-bold tracking-wider">進金生能源｜進能服事業部 × RE+ 26</div>
+          <h1 class="text-sm md:text-base font-extrabold tracking-tight leading-tight">麥肯錫 10 分鐘決策簡報與台灣落地戰略平台</h1>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Global Search -->
+        <div class="relative">
+          <input id="globalSearchInput" type="text" placeholder="搜尋技術、新創、行動..."
+            class="w-44 md:w-56 pl-8 pr-3 py-1.5 rounded-lg bg-slate-800/90 border border-slate-600 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400" />
+          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/></svg>
+          <div id="searchDropdown" class="hidden absolute right-0 mt-1.5 w-80 max-h-80 overflow-y-auto bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 z-50 divide-y divide-slate-100"></div>
+        </div>
+
+        <!-- View Mode Toggle -->
+        <div class="flex bg-slate-800 rounded-lg p-0.5 border border-slate-700 text-xs font-semibold">
+          <button id="btnModeDeck" onclick="setViewMode('deck')" class="px-2.5 py-1 rounded-md bg-blue-600 text-white transition">簡報模式</button>
+          <button id="btnModeScroll" onclick="setViewMode('scroll')" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition">全頁瀏覽</button>
+        </div>
+
+        <!-- 10-Min Timer -->
+        <button id="btnTimer" onclick="toggleTimer()" title="點擊開始/暫停 10 分鐘簡報倒數（雙擊重置）" ondblclick="resetTimer()"
+          class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-mono font-bold text-amber-300 flex items-center gap-1.5">
+          <span>⏱</span><span id="timerDisplay">10:00</span>
+        </button>
+
+        <!-- Presenter Notes Toggle -->
+        <button id="btnNotesToggle" onclick="toggleNotes()"
+          class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-slate-200">
+          講者備忘錄：<span id="notesStateLabel" class="text-emerald-400">開</span>
+        </button>
+
+        <!-- Supabase Status / Auth -->
+        <button id="btnAuth" onclick="openAuthModal()"
+          class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow">
+          <span id="sbDot" class="w-2 h-2 rounded-full bg-emerald-200 animate-pulse"></span>
+          <span id="authBtnLabel">Supabase 登入編輯</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Deck Sub-Navigation Bar -->
+    <div id="deckNavBar" class="bg-[#132E57] border-t border-slate-700/80">
+      <div class="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <button onclick="prevSlide()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 font-bold">← 上一頁</button>
+          <select id="slideSelect" onchange="goToSlide(Number(this.value))"
+            class="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-100 max-w-[220px] md:max-w-md focus:outline-none">
+          </select>
+          <button onclick="nextSlide()" class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 font-bold">下一頁 →</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="goToSlide(12)" class="hidden sm:inline-block px-2.5 py-1 rounded bg-amber-600/90 hover:bg-amber-500 text-white font-bold">★ 進能服總監專章</button>
+          <button onclick="goToSlide(14)" class="hidden sm:inline-block px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-bold">⚡ Supabase 戰情室</button>
+          <span id="slideCounter" class="font-mono font-bold text-amber-300">01 / 14</span>
+        </div>
+      </div>
+      <div class="h-1 bg-slate-800 w-full">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-amber-400 transition-all duration-300" style="width: 7.14%"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Presentation Stage -->
+  <main id="slidesContainer" class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8">
+    <!-- Rendered dynamically by app.js -->
+  </main>
+
+  <!-- Footer -->
+  <footer class="no-print bg-mckNavy text-slate-400 text-xs py-5 border-t border-slate-800 mt-8">
+    <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
+      <div>進金生能源 (6692) 進能服事業部｜RE+ 26 深度產業洞察與台灣落地戰略平台（嚴格忠於來源報告數據，無外部虛構）</div>
+      <div class="flex items-center gap-3">
+        <button onclick="openSqlModal()" class="text-amber-300 hover:underline">檢視 Supabase RLS SQL</button>
+        <span>•</span>
+        <span>快捷鍵：<kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-slate-200">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-slate-200">→</kbd> 換頁</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Startup Deep-Dive Modal -->
+  <div id="startupModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeStartupModal()">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] overflow-y-auto shadow-2xl border border-slate-200">
+      <div id="startupModalContent" class="p-6"></div>
+    </div>
+  </div>
+
+  <!-- Supabase Auth Modal -->
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeAuthModal()">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Supabase BaaS Auth (Zero Private Key)</div>
+          <h3 class="text-lg font-extrabold text-mckNavy">團隊雲端協作身分驗證</h3>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <div id="authLoggedInBox" class="hidden space-y-4">
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm">
+          <div class="font-bold text-emerald-900">已通過 Supabase Auth 驗證</div>
+          <div id="authUserEmail" class="text-emerald-700 mt-1 font-mono text-xs"></div>
+          <div class="text-xs text-slate-600 mt-2">您已解鎖 RLS 寫入權限，可在第 14 頁即時更新行動進度、新增專案與發表部門技術評估。</div>
+        </div>
+        <button onclick="handleSignOut()" class="w-full py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm">登出帳號</button>
+      </div>
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          本平台採 <b>GitHub Pages 靜態前端 + Supabase RLS</b> 安全架構。免登入即可即時讀取雲端最新進度；登入後即解鎖進度更新與評分寫入權限。
+        </p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">電子郵件 (Email)</label>
+          <input id="authEmail" type="email" required placeholder="director@acmepoint.com" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-blue-500"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">密碼 (至少 6 碼)</label>
+          <input id="authPassword" type="password" required minlength="6" placeholder="••••••••" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-blue-500"/>
+        </div>
+        <div id="authMessage" class="hidden text-xs p-2.5 rounded-lg"></div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="submit" onclick="window._authMode='signin'" class="py-2.5 rounded-lg bg-mckNavy hover:bg-blue-900 text-white font-bold text-sm">登入</button>
+          <button type="submit" onclick="window._authMode='signup'" class="py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-mckNavy font-bold text-sm border border-slate-300">註冊新帳號</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SQL Schema Viewer Modal -->
+  <div id="sqlModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeSqlModal()">
+    <div class="bg-slate-900 text-slate-100 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden shadow-2xl border border-slate-700 flex flex-col">
+      <div class="px-5 py-3.5 bg-slate-800 flex items-center justify-between border-b border-slate-700">
+        <span class="font-bold text-sm text-amber-300">Supabase PostgreSQL Schema & RLS 安全策略（已套用至專案）</span>
+        <button onclick="closeSqlModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <pre class="p-5 text-xs font-mono overflow-auto leading-relaxed text-emerald-300"><code>-- 1. 進能服台灣落地行動方案表 (replus26_action_items) + 團隊技術評分表 (replus26_tech_evaluations)
+-- 2. 強制啟用行級安全控制 (RLS)：
+ALTER TABLE public.replus26_action_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.replus26_tech_evaluations ENABLE ROW LEVEL SECURITY;
+
+-- 3. 公開唯讀（供簡報瀏覽）＋ 登入驗證寫入（零私鑰暴露）
+CREATE POLICY "replus26_read_actions" ON public.replus26_action_items FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "replus26_update_actions" ON public.replus26_action_items FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "replus26_insert_actions" ON public.replus26_action_items FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "replus26_insert_evals" ON public.replus26_tech_evaluations FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id OR user_id IS NULL);</code></pre>
+    </div>
+  </div>
+
+  <script src="./data.js"></script>
+  <script src="./svgs.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
